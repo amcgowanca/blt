@@ -14,8 +14,6 @@ class DbCommand extends BltTasks {
    * Iteratively copies remote db to local db for each multisite.
    *
    * @command sync:db:all
-   *
-   * @executeInDrupalVm
    */
   public function syncDbAll() {
     $exit_code = 0;
@@ -52,8 +50,6 @@ class DbCommand extends BltTasks {
    * Copies remote db to local db for default site.
    *
    * @command sync:db
-   *
-   * @executeInDrupalVm
    */
   public function syncDbDefault() {
     $this->invokeCommand('setup:settings');
@@ -61,10 +57,19 @@ class DbCommand extends BltTasks {
     $local_alias = '@' . $this->getConfigValue('drush.aliases.local');
     $remote_alias = '@' . $this->getConfigValue('drush.aliases.remote');
 
+    $task = $this->taskDrush();
+    $task->alias('')
+      ->drush('cache-clear drush')
+      ->run();
+
+    $this->taskDrush()
+      ->alias(NULL)
+      ->drush('sql-drop')
+      ->assume(TRUE)
+      ->run();
+
     $task = $this->taskDrush()
       ->alias('')
-      ->drush('cache-clear drush')
-      ->drush('sql-drop')
       ->drush('sql-sync')
       ->arg($remote_alias)
       ->arg($local_alias)
@@ -82,9 +87,13 @@ class DbCommand extends BltTasks {
       }
     }
 
-    $task->drush('cache-clear drush');
+    $result = $task->stopOnFail(TRUE)
+      ->run();
 
-    $result = $task->run();
+    $this->taskDrush()
+      ->alias('')
+      ->drush('cache-clear drush')
+      ->run();
 
     return $result;
   }

@@ -134,7 +134,6 @@ class DrushTask extends CommandStack {
    */
   public function uri($uri) {
     $this->uri = $uri;
-
     return $this;
   }
 
@@ -210,12 +209,15 @@ class DrushTask extends CommandStack {
     if (!isset($this->dir)) {
       $this->dir($this->getConfig()->get('drush.dir'));
     }
-    if (!isset($this->uri)) {
+
+    /* if ($this->uri === NULL) {
       $this->uri = $this->getConfig()->get('drush.uri');
     }
-    if (!isset($this->alias)) {
-      $this->alias($this->getConfig()->get('drush.alias'));
-    }
+
+    if ($this->alias === NULL) {
+      $this->alias = $this->getConfig()->get('drush.alias');
+    } */
+
     if (!isset($this->assume) && $this->input->hasOption('yes') && $this->input->getOption('yes')) {
       $this->assume(TRUE);
     }
@@ -264,6 +266,14 @@ class DrushTask extends CommandStack {
    * Set the options to be used for each drush command in the stack.
    */
   protected function setGlobalOptions() {
+    if ($this->uri === NULL) {
+      $this->uri($this->getConfig()->get('drush.uri'));
+    }
+
+    if ($this->alias === NULL) {
+      $this->alias($this->getConfig()->get('drush.alias'));
+    }
+
     if (isset($this->uri) && !empty($this->uri)) {
       $this->option('uri', $this->uri);
     }
